@@ -12,7 +12,6 @@ CREATE TABLE `transactions` (
 	`upload_id` integer NOT NULL,
 	`date` text NOT NULL,
 	`description` text NOT NULL,
-	`merchant` text,
 	`branch` text,
 	`amount` real NOT NULL,
 	`type` text NOT NULL,
