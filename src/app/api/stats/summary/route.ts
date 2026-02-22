@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { transactions, uploads, categories } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
-
-const ALLOCATION_CATEGORIES = ["Investing", "Tithe", "Family"];
+import { ALLOCATION_CATEGORIES } from "@/lib/constants";
 
 function getMonthTotals(month: number, year: number) {
   return db

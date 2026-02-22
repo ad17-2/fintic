@@ -9,11 +9,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
+import { SpendingVelocity } from "@/components/dashboard/spending-velocity";
 import { IncomeExpenseTrend } from "@/components/dashboard/income-expense-trend";
 import { CategoryBreakdown } from "@/components/dashboard/category-breakdown";
 import { DailySpending } from "@/components/dashboard/daily-spending";
 import { TopMerchants } from "@/components/dashboard/top-merchants";
 import { CategoryComparison } from "@/components/dashboard/category-comparison";
+import { YoYComparison } from "@/components/dashboard/yoy-comparison";
+import { SpendingByDow } from "@/components/dashboard/spending-by-dow";
+import { SavingsRate } from "@/components/dashboard/savings-rate";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -58,6 +62,37 @@ interface ComparisonData {
   previous: number;
 }
 
+interface VelocityData {
+  totalSpent: number;
+  avgDailySpend: number;
+  daysElapsed: number;
+  daysRemaining: number;
+  daysInMonth: number;
+  projectedTotal: number;
+  budget: number;
+  budgetRemaining: number;
+  pacePercent: number;
+}
+
+interface YoYItem {
+  category: string;
+  color: string;
+  current: number;
+  previousYear: number;
+  changePercent: number;
+}
+
+interface DowItem {
+  day: string;
+  total: number;
+  count: number;
+}
+
+interface SavingsRateItem {
+  label: string;
+  savingsRate: number;
+}
+
 export default function DashboardPage() {
   const [month, setMonth] = useState<string | null>(null);
   const [year, setYear] = useState<string | null>(null);
@@ -67,6 +102,10 @@ export default function DashboardPage() {
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [topMerchants, setTopMerchants] = useState<MerchantData[]>([]);
   const [categoryComparison, setCategoryComparison] = useState<ComparisonData[]>([]);
+  const [velocity, setVelocity] = useState<VelocityData | null>(null);
+  const [yoyComparison, setYoyComparison] = useState<YoYItem[]>([]);
+  const [dayOfWeek, setDayOfWeek] = useState<DowItem[]>([]);
+  const [savingsRate, setSavingsRate] = useState<SavingsRateItem[]>([]);
 
   useEffect(() => {
     async function resolveDefaultPeriod() {
@@ -91,20 +130,30 @@ export default function DashboardPage() {
   const fetchData = useCallback(async () => {
     if (!month || !year) return;
 
-    const [summaryRes, catRes, trendRes, merchantsRes, comparisonRes] =
-      await Promise.all([
-        fetch(`/api/stats/summary?month=${month}&year=${year}`),
-        fetch(`/api/stats/by-category?month=${month}&year=${year}&type=debit`),
-        fetch("/api/stats/trends?months=12"),
-        fetch(`/api/stats/top-merchants?month=${month}&year=${year}`),
-        fetch(`/api/stats/category-comparison?month=${month}&year=${year}`),
-      ]);
+    const [
+      summaryRes, catRes, trendRes, merchantsRes, comparisonRes,
+      velocityRes, yoyRes, dowRes, savingsRes,
+    ] = await Promise.all([
+      fetch(`/api/stats/summary?month=${month}&year=${year}`),
+      fetch(`/api/stats/by-category?month=${month}&year=${year}&type=debit`),
+      fetch("/api/stats/trends?months=12"),
+      fetch(`/api/stats/top-merchants?month=${month}&year=${year}`),
+      fetch(`/api/stats/category-comparison?month=${month}&year=${year}`),
+      fetch(`/api/stats/spending-velocity?month=${month}&year=${year}`),
+      fetch(`/api/stats/yoy-comparison?month=${month}&year=${year}`),
+      fetch(`/api/stats/spending-by-dow?month=${month}&year=${year}`),
+      fetch("/api/stats/savings-rate?months=12"),
+    ]);
 
     if (summaryRes.ok) setSummary(await summaryRes.json());
     if (catRes.ok) setCategories(await catRes.json());
     if (trendRes.ok) setTrends(await trendRes.json());
     if (merchantsRes.ok) setTopMerchants(await merchantsRes.json());
     if (comparisonRes.ok) setCategoryComparison(await comparisonRes.json());
+    if (velocityRes.ok) setVelocity(await velocityRes.json());
+    if (yoyRes.ok) setYoyComparison(await yoyRes.json());
+    if (dowRes.ok) setDayOfWeek(await dowRes.json());
+    if (savingsRes.ok) setSavingsRate(await savingsRes.json());
   }, [month, year]);
 
   useEffect(() => {
@@ -159,6 +208,8 @@ export default function DashboardPage() {
 
       {summary && <SummaryCards data={summary} />}
 
+      {velocity && <SpendingVelocity data={velocity} />}
+
       <div className="grid gap-6 lg:grid-cols-2">
         <IncomeExpenseTrend data={trends} />
         <CategoryBreakdown data={categories} />
@@ -168,6 +219,13 @@ export default function DashboardPage() {
         <TopMerchants data={topMerchants} />
         <CategoryComparison data={categoryComparison} />
       </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <YoYComparison data={yoyComparison} />
+        <SpendingByDow data={dayOfWeek} />
+      </div>
+
+      <SavingsRate data={savingsRate} />
 
       {summary && <DailySpending data={summary.dailySpending} />}
     </div>
