@@ -6,12 +6,11 @@ import { parseBcaCsv } from "@/lib/csv-parser";
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
-  const month = Number(formData.get("month"));
   const year = Number(formData.get("year"));
 
-  if (!file || !month || !year) {
+  if (!file || !year) {
     return NextResponse.json(
-      { error: "File, month, and year are required" },
+      { error: "File and year are required" },
       { status: 400 }
     );
   }
@@ -30,7 +29,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     .insert(uploads)
     .values({
       filename: file.name,
-      month,
+      month: result.month,
       year,
       openingBalance: result.openingBalance,
       closingBalance: result.closingBalance,
@@ -46,6 +45,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     uploadId: upload.id,
     date: t.date,
     description: t.description,
+    merchant: t.merchant,
     branch: t.branch,
     amount: t.amount,
     type: t.type,

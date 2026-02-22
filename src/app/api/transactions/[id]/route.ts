@@ -32,6 +32,7 @@ export async function PATCH(
   if (body.date !== undefined) updateData.date = body.date;
   if (body.description !== undefined)
     updateData.description = body.description;
+  if (body.merchant !== undefined) updateData.merchant = body.merchant;
   if (body.amount !== undefined) updateData.amount = body.amount;
   if (body.type !== undefined) updateData.type = body.type;
   if (body.categoryId !== undefined) updateData.categoryId = body.categoryId;

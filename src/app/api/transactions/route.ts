@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { transactions, uploads, categories } from "@/db/schema";
-import { and, eq, like, sql, desc } from "drizzle-orm";
+import { and, eq, like, or, sql, desc } from "drizzle-orm";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = request.nextUrl;
@@ -19,7 +19,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (year) conditions.push(eq(uploads.year, Number(year)));
   if (categoryId) conditions.push(eq(transactions.categoryId, Number(categoryId)));
   if (type) conditions.push(eq(transactions.type, type));
-  if (search) conditions.push(like(transactions.description, `%${search}%`));
+  if (search) {
+    conditions.push(
+      or(
+        like(transactions.description, `%${search}%`),
+        like(transactions.merchant, `%${search}%`)
+      )!
+    );
+  }
 
   const total = db
     .select({ count: sql<number>`COUNT(*)` })
@@ -33,6 +40,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       id: transactions.id,
       date: transactions.date,
       description: transactions.description,
+      merchant: transactions.merchant,
       amount: transactions.amount,
       type: transactions.type,
       balance: transactions.balance,

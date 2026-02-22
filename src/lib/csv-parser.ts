@@ -1,6 +1,7 @@
 export interface ParsedTransaction {
   date: string;
   description: string;
+  merchant: string;
   branch: string;
   amount: number;
   type: "debit" | "credit";
@@ -11,6 +12,7 @@ export interface ParseResult {
   accountNumber: string;
   accountName: string;
   currency: string;
+  month: number;
   transactions: ParsedTransaction[];
   openingBalance: number;
   closingBalance: number;
@@ -34,6 +36,10 @@ export function parseBcaCsv(csvText: string, year: number): ParseResult {
     parseTransactionLine(line, year)
   );
 
+  const month = transactions.length > 0
+    ? parseInt(transactions[0].date.split("-")[1], 10)
+    : new Date().getMonth() + 1;
+
   const { openingBalance, closingBalance, totalCredit, totalDebit } =
     parseFooter(footer);
 
@@ -41,6 +47,7 @@ export function parseBcaCsv(csvText: string, year: number): ParseResult {
     accountNumber,
     accountName,
     currency,
+    month,
     transactions,
     openingBalance,
     closingBalance,
@@ -97,7 +104,65 @@ function parseTransactionLine(
     .join(",")
     .trim();
 
-  return { date, description, branch, amount, type, balance };
+  const merchant = extractMerchant(description);
+
+  return { date, description, merchant, branch, amount, type, balance };
+}
+
+function extractMerchant(description: string): string {
+  const qrMatch = description.match(
+    /QRC?\s+\d{3}\s+[\d.]+(.+)/
+  );
+  if (qrMatch) return qrMatch[1].trim();
+
+  const ftfvaMatch = description.match(
+    /FTFVA\/WS\d+\/([A-Za-z][A-Za-z0-9. ]+)/
+  );
+  if (ftfvaMatch) return ftfvaMatch[1].replace(/\s*\d{5,}$/, "").trim();
+
+  const ftscyMatch = description.match(
+    /FTSCY\/WS\d+\s+[\d.]+(.+)/
+  );
+  if (ftscyMatch) {
+    const raw = ftscyMatch[1].trim();
+    const segments = raw.split(/\s{2,}/);
+    return segments[segments.length - 1].trim();
+  }
+
+  const autocrMatch = description.match(
+    /AUTOCR-IR\s+(.+?)(?:\s+USD)/
+  );
+  if (autocrMatch) return autocrMatch[1].trim();
+
+  const biFastCrMatch = description.match(
+    /BI-FAST\s+CR\s+TRANSFER\s+DR\s+\d{3}\s+(.+)/
+  );
+  if (biFastCrMatch) return biFastCrMatch[1].trim();
+
+  const biFastDbMatch = description.match(
+    /BI-FAST\s+DB\s+TRANSFER\s+KE\s+\d{3}\s+(.+)/
+  );
+  if (biFastDbMatch) return biFastDbMatch[1].replace(/\s{2,}.*$/, "").trim();
+
+  if (description.match(/BI-FAST\s+DB\s+BIAYA\s+TXN/)) return "Transfer Fee";
+
+  const debitDomMatch = description.match(
+    /DB\s+DEBIT\s+DOMESTIK.*?\d{3}\s+(.+)/
+  );
+  if (debitDomMatch) return debitDomMatch[1].trim();
+
+  const kartuDebitMatch = description.match(
+    /KARTU\s+DEBIT\s+(.+)/
+  );
+  if (kartuDebitMatch) return kartuDebitMatch[1].trim();
+
+  if (description.includes("KARTU KREDIT")) return "BCA Card Payment";
+  if (description.startsWith("BIAYA ADM")) return "BCA Admin Fee";
+  if (description.startsWith("TARIKAN PEMINDAHAN")) return "BCA Transfer";
+  if (description === "BUNGA") return "Interest";
+  if (description === "PAJAK BUNGA") return "Interest Tax";
+
+  return description.replace(/\s{2,}/g, " ").trim();
 }
 
 function parseFooter(footerLines: string[]): {

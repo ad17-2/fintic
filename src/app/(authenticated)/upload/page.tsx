@@ -33,7 +33,6 @@ const MONTHS = [
 export default function UploadPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
-  const [month, setMonth] = useState(String(new Date().getMonth() + 1));
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [uploading, setUploading] = useState(false);
   const [uploads, setUploads] = useState<UploadRecord[]>([]);
@@ -54,7 +53,6 @@ export default function UploadPage() {
     setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("month", month);
     formData.append("year", year);
 
     try {
@@ -106,33 +104,18 @@ export default function UploadPage() {
           <CardTitle>Upload BCA CSV</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <Select value={month} onValueChange={setMonth}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Month" />
-              </SelectTrigger>
-              <SelectContent>
-                {MONTHS.map((m, i) => (
-                  <SelectItem key={i} value={String(i + 1)}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={year} onValueChange={setYear}>
-              <SelectTrigger className="w-28">
-                <SelectValue placeholder="Year" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map((y) => (
-                  <SelectItem key={y} value={String(y)}>
-                    {y}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={year} onValueChange={setYear}>
+            <SelectTrigger className="w-28">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((y) => (
+                <SelectItem key={y} value={String(y)}>
+                  {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <div
             className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors ${

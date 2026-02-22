@@ -8,6 +8,13 @@
       "when": 1771745558449,
       "tag": "0000_windy_pride",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1771747273113,
+      "tag": "0001_youthful_red_hulk",
+      "breakpoints": true
     }
   ]
 }

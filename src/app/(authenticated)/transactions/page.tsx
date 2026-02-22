@@ -26,6 +26,7 @@ interface Transaction {
   id: number;
   date: string;
   description: string;
+  merchant: string | null;
   amount: number;
   type: string;
   balance: number;
@@ -151,7 +152,7 @@ export default function TransactionsPage() {
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search description..."
+            placeholder="Search description or merchant..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="pl-9"
@@ -165,6 +166,7 @@ export default function TransactionsPage() {
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead>Merchant</TableHead>
               <TableHead>Category</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               <TableHead>Type</TableHead>
@@ -174,7 +176,7 @@ export default function TransactionsPage() {
           <TableBody>
             {txns.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
                   No transactions found
                 </TableCell>
               </TableRow>
@@ -186,6 +188,9 @@ export default function TransactionsPage() {
                   </TableCell>
                   <TableCell className="max-w-xs truncate text-sm">
                     {txn.description}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {txn.merchant || "—"}
                   </TableCell>
                   <TableCell>
                     {txn.categoryName ? (

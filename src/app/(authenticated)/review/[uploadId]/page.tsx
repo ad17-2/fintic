@@ -29,6 +29,7 @@ interface Transaction {
   id: number;
   date: string;
   description: string;
+  merchant: string | null;
   branch: string;
   amount: number;
   type: string;
@@ -282,6 +283,7 @@ export default function ReviewPage() {
               </TableHead>
               <TableHead className="w-28">Date</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead className="w-40">Merchant</TableHead>
               <TableHead className="w-28">Amount</TableHead>
               <TableHead className="w-16">Type</TableHead>
               <TableHead className="w-44">Category</TableHead>
@@ -366,6 +368,15 @@ function TransactionRow({
           className="h-8 text-xs"
           onChange={(e) =>
             onUpdate(txn.id, "description", e.target.value)
+          }
+        />
+      </TableCell>
+      <TableCell>
+        <Input
+          value={txn.merchant ?? ""}
+          className="h-8 text-xs"
+          onChange={(e) =>
+            onUpdate(txn.id, "merchant", e.target.value)
           }
         />
       </TableCell>
