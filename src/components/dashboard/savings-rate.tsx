@@ -15,11 +15,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface SavingsRateItem {
-  label: string;
-  savingsRate: number;
-}
+import type { SavingsRateItem } from "@/lib/types";
 
 const chartConfig = {
   savingsRate: {

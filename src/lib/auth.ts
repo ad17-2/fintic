@@ -3,9 +3,10 @@ import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 
 const SESSION_COOKIE = "fintic_session";
-const SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET || "fallback-secret-do-not-use-in-prod"
-);
+
+const authSecret = process.env.AUTH_SECRET;
+if (!authSecret) throw new Error("AUTH_SECRET environment variable is required");
+const SECRET = new TextEncoder().encode(authSecret);
 
 export async function verifyPassword(password: string): Promise<boolean> {
   const hash = process.env.PASSWORD_HASH;

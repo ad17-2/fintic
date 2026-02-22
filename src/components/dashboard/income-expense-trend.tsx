@@ -16,23 +16,13 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface TrendData {
-  label: string;
-  income: number;
-  expense: number;
-}
+import { formatAxis } from "@/lib/chart-utils";
+import type { TrendData } from "@/lib/types";
 
 const chartConfig = {
   income: { label: "Income", theme: { light: "oklch(0.696 0.170 163)", dark: "oklch(0.740 0.160 163)" } },
   expense: { label: "Expenses", theme: { light: "oklch(0.645 0.246 16)", dark: "oklch(0.700 0.220 16)" } },
 } satisfies ChartConfig;
-
-function formatAxis(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(0)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
-  return String(value);
-}
 
 export function IncomeExpenseTrend({ data }: { data: TrendData[] }) {
   if (data.length === 0) {

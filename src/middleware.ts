@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const PUBLIC_PATHS = ["/login", "/api/auth/login"];
-const SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET || "fallback-secret-do-not-use-in-prod"
-);
+
+const authSecret = process.env.AUTH_SECRET;
+if (!authSecret) throw new Error("AUTH_SECRET environment variable is required");
+const SECRET = new TextEncoder().encode(authSecret);
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;

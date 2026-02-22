@@ -8,26 +8,12 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface MerchantData {
-  merchant: string;
-  total: number;
-  count: number;
-}
+import { formatAxis, truncate } from "@/lib/chart-utils";
+import type { MerchantData } from "@/lib/types";
 
 const chartConfig = {
   total: { label: "Amount", theme: { light: "oklch(0.600 0.118 184)", dark: "oklch(0.650 0.130 184)" } },
 } satisfies ChartConfig;
-
-function formatAxis(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(0)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
-  return String(value);
-}
-
-function truncate(str: string, max: number): string {
-  return str.length > max ? str.slice(0, max) + "…" : str;
-}
 
 export function TopMerchants({ data }: { data: MerchantData[] }) {
   if (data.length === 0) {

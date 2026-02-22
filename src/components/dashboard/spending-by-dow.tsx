@@ -16,12 +16,8 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface DowItem {
-  day: string;
-  total: number;
-  count: number;
-}
+import { formatAxis } from "@/lib/chart-utils";
+import type { DowItem } from "@/lib/types";
 
 const chartConfig = {
   total: {
@@ -33,12 +29,6 @@ const chartConfig = {
     theme: { light: "oklch(0.645 0.246 16)", dark: "oklch(0.700 0.220 16)" },
   },
 } satisfies ChartConfig;
-
-function formatAxis(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(0)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
-  return String(value);
-}
 
 export function SpendingByDow({ data }: { data: DowItem[] }) {
   if (data.length === 0 || data.every((d) => d.total === 0)) {

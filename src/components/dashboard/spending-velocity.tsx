@@ -3,18 +3,7 @@
 import { Gauge } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatIDR } from "@/lib/format";
-
-interface VelocityData {
-  totalSpent: number;
-  avgDailySpend: number;
-  daysElapsed: number;
-  daysRemaining: number;
-  daysInMonth: number;
-  projectedTotal: number;
-  budget: number;
-  budgetRemaining: number;
-  pacePercent: number;
-}
+import type { VelocityData } from "@/lib/types";
 
 function getBarColor(pacePercent: number): string {
   if (pacePercent > 100) return "bg-rose-500";

@@ -30,34 +30,11 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatIDR, formatDate } from "@/lib/format";
-
-interface Transaction {
-  id: number;
-  date: string;
-  description: string;
-  merchant: string | null;
-  amount: number;
-  type: string;
-  balance: number;
-  categoryId: number | null;
-  categoryName: string | null;
-  categoryColor: string | null;
-  notes: string | null;
-}
-
-interface Category {
-  id: number;
-  name: string;
-  color: string;
-}
-
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+import { MONTHS } from "@/lib/constants";
+import type { TransactionWithCategory, Category } from "@/lib/types";
 
 export default function TransactionsPage() {
-  const [txns, setTxns] = useState<Transaction[]>([]);
+  const [txns, setTxns] = useState<TransactionWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [month, setMonth] = useState(String(new Date().getMonth() + 1));
   const [year, setYear] = useState(String(new Date().getFullYear()));
@@ -67,7 +44,7 @@ export default function TransactionsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
+  const [editingTxn, setEditingTxn] = useState<TransactionWithCategory | null>(null);
 
   const fetchTransactions = useCallback(async () => {
     const params = new URLSearchParams({
@@ -298,10 +275,10 @@ function EditTransactionDialog({
   onClose,
   onSaved,
 }: {
-  txn: Transaction;
+  txn: TransactionWithCategory;
   categories: Category[];
   onClose: () => void;
-  onSaved: (updated: Transaction) => void;
+  onSaved: (updated: TransactionWithCategory) => void;
 }) {
   const [form, setForm] = useState({
     date: txn.date,

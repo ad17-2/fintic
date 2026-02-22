@@ -15,21 +15,12 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface DailyData {
-  day: number;
-  amount: number;
-}
+import { formatAxis } from "@/lib/chart-utils";
+import type { DailyData } from "@/lib/types";
 
 const chartConfig = {
   amount: { label: "Spending", theme: { light: "oklch(0.645 0.246 16)", dark: "oklch(0.700 0.220 16)" } },
 } satisfies ChartConfig;
-
-function formatAxis(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(0)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
-  return String(value);
-}
 
 export function DailySpending({ data }: { data: DailyData[] }) {
   if (data.length === 0) {

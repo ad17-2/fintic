@@ -11,17 +11,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatIDR } from "@/lib/format";
-
-interface SummaryData {
-  totalIncome: number;
-  totalExpenses: number;
-  allocations: number;
-  net: number;
-  balance: number;
-  incomeChange: number;
-  expenseChange: number;
-  allocationChange: number;
-}
+import type { SummaryData } from "@/lib/types";
 
 export function SummaryCards({ data }: { data: SummaryData }) {
   const cards = [

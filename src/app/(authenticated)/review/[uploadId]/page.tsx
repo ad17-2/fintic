@@ -24,51 +24,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-
-interface Transaction {
-  id: number;
-  date: string;
-  description: string;
-  merchant: string | null;
-  branch: string;
-  amount: number;
-  type: string;
-  balance: number;
-  categoryId: number | null;
-  notes: string | null;
-}
-
-interface Upload {
-  id: number;
-  filename: string;
-  month: number;
-  year: number;
-  openingBalance: number | null;
-  closingBalance: number | null;
-  totalCredit: number | null;
-  totalDebit: number | null;
-  transactionCount: number;
-  status: string;
-}
-
-interface Category {
-  id: number;
-  name: string;
-  color: string;
-}
-
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+import { MONTHS } from "@/lib/constants";
+import type { TransactionRecord, UploadRecord, Category } from "@/lib/types";
 
 export default function ReviewPage() {
   const router = useRouter();
   const params = useParams();
   const uploadId = params.uploadId as string;
 
-  const [upload, setUpload] = useState<Upload | null>(null);
-  const [txns, setTxns] = useState<Transaction[]>([]);
+  const [upload, setUpload] = useState<UploadRecord | null>(null);
+  const [txns, setTxns] = useState<TransactionRecord[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [bulkCategoryId, setBulkCategoryId] = useState<string>("");
@@ -335,7 +300,7 @@ function TransactionRow({
   onUpdate,
   onDelete,
 }: {
-  txn: Transaction;
+  txn: TransactionRecord;
   categories: Category[];
   selected: boolean;
   onToggle: () => void;

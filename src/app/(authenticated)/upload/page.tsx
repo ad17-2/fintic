@@ -15,23 +15,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatIDR } from "@/lib/format";
-
-interface UploadRecord {
-  id: number;
-  filename: string;
-  month: number;
-  year: number;
-  totalCredit: number | null;
-  totalDebit: number | null;
-  transactionCount: number;
-  status: string;
-  uploadedAt: string;
-}
-
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+import { MONTHS } from "@/lib/constants";
+import type { UploadRecord } from "@/lib/types";
 
 export default function UploadPage() {
   const router = useRouter();

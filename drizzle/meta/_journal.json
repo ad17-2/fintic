@@ -15,6 +15,13 @@
       "when": 1771747273113,
       "tag": "0001_youthful_red_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1771751737798,
+      "tag": "0002_bored_fabian_cortez",
+      "breakpoints": true
     }
   ]
 }

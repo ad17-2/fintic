@@ -10,28 +10,13 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface ComparisonData {
-  category: string;
-  color: string;
-  current: number;
-  previous: number;
-}
+import { formatAxis, truncate } from "@/lib/chart-utils";
+import type { ComparisonData } from "@/lib/types";
 
 const chartConfig = {
   current: { label: "This Month", theme: { light: "oklch(0.600 0.118 184)", dark: "oklch(0.650 0.130 184)" } },
   previous: { label: "Last Month", theme: { light: "oklch(0.700 0.020 265)", dark: "oklch(0.550 0.015 265)" } },
 } satisfies ChartConfig;
-
-function formatAxis(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(0)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
-  return String(value);
-}
-
-function truncate(str: string, max: number): string {
-  return str.length > max ? str.slice(0, max) + "…" : str;
-}
 
 export function CategoryComparison({ data }: { data: ComparisonData[] }) {
   if (data.length === 0) {

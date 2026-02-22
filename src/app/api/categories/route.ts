@@ -1,31 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { categories } from "@/db/schema";
+import { categoryCreateSchema } from "@/lib/validation";
+import { errorResponse } from "@/lib/api-utils";
 
 export async function GET(): Promise<NextResponse> {
-  const all = db.select().from(categories).all();
-  return NextResponse.json(all);
+  try {
+    const all = db.select().from(categories).all();
+    return NextResponse.json(all);
+  } catch (error) {
+    return errorResponse(error, "categories");
+  }
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const body = await request.json();
+  try {
+    const body = await request.json();
+    const parsed = categoryCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
+        { status: 400 }
+      );
+    }
 
-  if (!body.name || !body.color) {
-    return NextResponse.json(
-      { error: "Name and color are required" },
-      { status: 400 }
-    );
+    const [category] = db
+      .insert(categories)
+      .values({
+        name: parsed.data.name,
+        color: parsed.data.color,
+        isDefault: false,
+      })
+      .returning()
+      .all();
+
+    return NextResponse.json(category, { status: 201 });
+  } catch (error) {
+    return errorResponse(error, "categories");
   }
-
-  const [category] = db
-    .insert(categories)
-    .values({
-      name: body.name,
-      color: body.color,
-      isDefault: false,
-    })
-    .returning()
-    .all();
-
-  return NextResponse.json(category, { status: 201 });
 }

@@ -10,13 +10,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface CategoryData {
-  categoryName: string;
-  color: string;
-  total: number;
-  percentage: number;
-}
+import type { CategoryData } from "@/lib/types";
 
 export function CategoryBreakdown({ data }: { data: CategoryData[] }) {
   if (data.length === 0) {
