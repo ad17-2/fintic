@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search } from "lucide-react";
+import { Search, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -20,6 +21,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { formatIDR, formatDate } from "@/lib/format";
 
 interface Transaction {
@@ -58,6 +67,7 @@ export default function TransactionsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
 
   const fetchTransactions = useCallback(async () => {
     const params = new URLSearchParams({
@@ -171,12 +181,13 @@ export default function TransactionsPage() {
               <TableHead className="text-right">Amount</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Notes</TableHead>
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {txns.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   No transactions found
                 </TableCell>
               </TableRow>
@@ -223,6 +234,16 @@ export default function TransactionsPage() {
                   <TableCell className="max-w-32 truncate text-xs text-muted-foreground">
                     {txn.notes || "—"}
                   </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setEditingTxn({ ...txn })}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -255,6 +276,155 @@ export default function TransactionsPage() {
           </div>
         </div>
       )}
+
+      {editingTxn && (
+        <EditTransactionDialog
+          txn={editingTxn}
+          categories={categories}
+          onClose={() => setEditingTxn(null)}
+          onSaved={(updated) => {
+            setTxns((prev) => prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t)));
+            setEditingTxn(null);
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function EditTransactionDialog({
+  txn,
+  categories,
+  onClose,
+  onSaved,
+}: {
+  txn: Transaction;
+  categories: Category[];
+  onClose: () => void;
+  onSaved: (updated: Transaction) => void;
+}) {
+  const [form, setForm] = useState({
+    date: txn.date,
+    description: txn.description,
+    merchant: txn.merchant ?? "",
+    amount: txn.amount,
+    categoryId: txn.categoryId,
+    notes: txn.notes ?? "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+    const res = await fetch(`/api/transactions/${txn.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date: form.date,
+        description: form.description,
+        merchant: form.merchant || null,
+        amount: form.amount,
+        categoryId: form.categoryId,
+        notes: form.notes || null,
+      }),
+    });
+
+    if (res.ok) {
+      const updated = await res.json();
+      const cat = categories.find((c) => c.id === updated.categoryId);
+      onSaved({
+        ...updated,
+        categoryName: cat?.name ?? null,
+        categoryColor: cat?.color ?? null,
+      });
+      toast.success("Transaction updated");
+    } else {
+      toast.error("Failed to update transaction");
+    }
+    setSaving(false);
+  }
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Transaction</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <Input
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Amount</Label>
+              <Input
+                type="number"
+                value={form.amount}
+                onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Input
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Merchant</Label>
+            <Input
+              value={form.merchant}
+              onChange={(e) => setForm({ ...form, merchant: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Category</Label>
+            <Select
+              value={form.categoryId ? String(form.categoryId) : "none"}
+              onValueChange={(v) => setForm({ ...form, categoryId: v === "none" ? null : Number(v) })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Uncategorized</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="inline-block h-2 w-2 rounded-full"
+                        style={{ backgroundColor: c.color }}
+                      />
+                      {c.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Notes</Label>
+            <Input
+              value={form.notes}
+              placeholder="Add note..."
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? "Saving..." : "Save"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

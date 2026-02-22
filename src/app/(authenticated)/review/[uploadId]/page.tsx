@@ -229,12 +229,12 @@ export default function ReviewPage() {
             <SummaryItem
               label="Total Credit"
               value={formatIDR(upload.totalCredit ?? 0)}
-              className="text-green-600"
+              className="text-emerald-600 dark:text-emerald-400"
             />
             <SummaryItem
               label="Total Debit"
               value={formatIDR(upload.totalDebit ?? 0)}
-              className="text-red-600"
+              className="text-rose-600 dark:text-rose-400"
             />
           </div>
         </CardContent>
@@ -380,15 +380,8 @@ function TransactionRow({
           }
         />
       </TableCell>
-      <TableCell>
-        <Input
-          type="number"
-          value={txn.amount}
-          className="h-8 text-xs"
-          onChange={(e) =>
-            onUpdate(txn.id, "amount", parseFloat(e.target.value))
-          }
-        />
+      <TableCell className="text-right text-xs font-medium tabular-nums">
+        {formatIDR(txn.amount)}
       </TableCell>
       <TableCell>
         <Badge

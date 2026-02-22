@@ -14,7 +14,7 @@ export default function AuthenticatedLayout({
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-14 items-center border-b px-4 md:hidden">
           <MobileNav />
-          <span className="ml-3 text-lg font-bold">Fintic</span>
+          <span className="ml-3 text-lg font-bold text-primary">Fintic</span>
         </header>
         <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
       </div>

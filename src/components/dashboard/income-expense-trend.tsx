@@ -24,8 +24,8 @@ interface TrendData {
 }
 
 const chartConfig = {
-  income: { label: "Income", color: "hsl(142.1 76.2% 36.3%)" },
-  expense: { label: "Expenses", color: "hsl(0 72.2% 50.6%)" },
+  income: { label: "Income", theme: { light: "oklch(0.696 0.170 163)", dark: "oklch(0.740 0.160 163)" } },
+  expense: { label: "Expenses", theme: { light: "oklch(0.645 0.246 16)", dark: "oklch(0.700 0.220 16)" } },
 } satisfies ChartConfig;
 
 function formatAxis(value: number): string {

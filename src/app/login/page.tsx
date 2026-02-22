@@ -40,10 +40,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Fintic</CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary">Fintic</CardTitle>
           <p className="text-sm text-muted-foreground">
             Personal Financial Analytics
           </p>

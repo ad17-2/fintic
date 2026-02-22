@@ -12,6 +12,8 @@ import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { IncomeExpenseTrend } from "@/components/dashboard/income-expense-trend";
 import { CategoryBreakdown } from "@/components/dashboard/category-breakdown";
 import { DailySpending } from "@/components/dashboard/daily-spending";
+import { TopMerchants } from "@/components/dashboard/top-merchants";
+import { CategoryComparison } from "@/components/dashboard/category-comparison";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -21,10 +23,12 @@ const MONTHS = [
 interface SummaryData {
   totalIncome: number;
   totalExpenses: number;
+  allocations: number;
   net: number;
   balance: number;
   incomeChange: number;
   expenseChange: number;
+  allocationChange: number;
   dailySpending: Array<{ day: number; amount: number }>;
 }
 
@@ -41,38 +45,92 @@ interface TrendData {
   expense: number;
 }
 
+interface MerchantData {
+  merchant: string;
+  total: number;
+  count: number;
+}
+
+interface ComparisonData {
+  category: string;
+  color: string;
+  current: number;
+  previous: number;
+}
+
 export default function DashboardPage() {
-  const [month, setMonth] = useState(String(new Date().getMonth() + 1));
-  const [year, setYear] = useState(String(new Date().getFullYear()));
+  const [month, setMonth] = useState<string | null>(null);
+  const [year, setYear] = useState<string | null>(null);
+  const [periodResolved, setPeriodResolved] = useState(false);
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [trends, setTrends] = useState<TrendData[]>([]);
+  const [topMerchants, setTopMerchants] = useState<MerchantData[]>([]);
+  const [categoryComparison, setCategoryComparison] = useState<ComparisonData[]>([]);
+
+  useEffect(() => {
+    async function resolveDefaultPeriod() {
+      const res = await fetch("/api/stats/trends?months=120");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) {
+          const latest = data[data.length - 1];
+          setMonth(String(latest.month));
+          setYear(String(latest.year));
+          setPeriodResolved(true);
+          return;
+        }
+      }
+      setMonth(String(new Date().getMonth() + 1));
+      setYear(String(new Date().getFullYear()));
+      setPeriodResolved(true);
+    }
+    resolveDefaultPeriod();
+  }, []);
 
   const fetchData = useCallback(async () => {
-    const [summaryRes, catRes, trendRes] = await Promise.all([
-      fetch(`/api/stats/summary?month=${month}&year=${year}`),
-      fetch(`/api/stats/by-category?month=${month}&year=${year}&type=debit`),
-      fetch("/api/stats/trends?months=12"),
-    ]);
+    if (!month || !year) return;
+
+    const [summaryRes, catRes, trendRes, merchantsRes, comparisonRes] =
+      await Promise.all([
+        fetch(`/api/stats/summary?month=${month}&year=${year}`),
+        fetch(`/api/stats/by-category?month=${month}&year=${year}&type=debit`),
+        fetch("/api/stats/trends?months=12"),
+        fetch(`/api/stats/top-merchants?month=${month}&year=${year}`),
+        fetch(`/api/stats/category-comparison?month=${month}&year=${year}`),
+      ]);
 
     if (summaryRes.ok) setSummary(await summaryRes.json());
     if (catRes.ok) setCategories(await catRes.json());
     if (trendRes.ok) setTrends(await trendRes.json());
+    if (merchantsRes.ok) setTopMerchants(await merchantsRes.json());
+    if (comparisonRes.ok) setCategoryComparison(await comparisonRes.json());
   }, [month, year]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (periodResolved) fetchData();
+  }, [periodResolved, fetchData]);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+
+  if (!periodResolved) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+        </div>
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="flex gap-2">
-          <Select value={month} onValueChange={setMonth}>
+          <Select value={month!} onValueChange={setMonth}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -84,7 +142,7 @@ export default function DashboardPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={year} onValueChange={setYear}>
+          <Select value={year!} onValueChange={setYear}>
             <SelectTrigger className="w-24">
               <SelectValue />
             </SelectTrigger>
@@ -104,6 +162,11 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <IncomeExpenseTrend data={trends} />
         <CategoryBreakdown data={categories} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <TopMerchants data={topMerchants} />
+        <CategoryComparison data={categoryComparison} />
       </div>
 
       {summary && <DailySpending data={summary.dailySpending} />}

@@ -14,12 +14,15 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { formatIDR } from "@/lib/format";
 
 interface UploadRecord {
   id: number;
   filename: string;
   month: number;
   year: number;
+  totalCredit: number | null;
+  totalDebit: number | null;
   transactionCount: number;
   status: string;
   uploadedAt: string;
@@ -197,6 +200,15 @@ export default function UploadPage() {
                       <p className="text-xs text-muted-foreground">
                         {u.transactionCount} transactions &middot;{" "}
                         {u.filename}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        <span className="text-emerald-600 dark:text-emerald-400">
+                          +{formatIDR(u.totalCredit ?? 0)}
+                        </span>
+                        {" / "}
+                        <span className="text-rose-600 dark:text-rose-400">
+                          -{formatIDR(u.totalDebit ?? 0)}
+                        </span>
                       </p>
                     </div>
                   </div>

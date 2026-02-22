@@ -65,7 +65,7 @@ export function CategoryBreakdown({ data }: { data: CategoryData[] }) {
               innerRadius={60}
               outerRadius={100}
               strokeWidth={2}
-              stroke="hsl(var(--background))"
+              stroke="var(--background)"
             >
               {chartData.map((entry) => (
                 <Cell key={entry.category} fill={entry.fill} />
