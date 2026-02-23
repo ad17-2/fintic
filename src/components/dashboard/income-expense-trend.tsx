@@ -21,6 +21,7 @@ import type { TrendData } from "@/lib/types";
 
 const chartConfig = {
   income: { label: "Income", theme: { light: "oklch(0.696 0.170 163)", dark: "oklch(0.740 0.160 163)" } },
+  allocations: { label: "Allocations", theme: { light: "oklch(0.585 0.175 274)", dark: "oklch(0.650 0.160 274)" } },
   expense: { label: "Expenses", theme: { light: "oklch(0.645 0.246 16)", dark: "oklch(0.700 0.220 16)" } },
 } satisfies ChartConfig;
 
@@ -51,6 +52,10 @@ export function IncomeExpenseTrend({ data }: { data: TrendData[] }) {
                 <stop offset="5%" stopColor="var(--color-income)" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="var(--color-income)" stopOpacity={0} />
               </linearGradient>
+              <linearGradient id="allocGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-allocations)" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="var(--color-allocations)" stopOpacity={0} />
+              </linearGradient>
               <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--color-expense)" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="var(--color-expense)" stopOpacity={0} />
@@ -66,6 +71,13 @@ export function IncomeExpenseTrend({ data }: { data: TrendData[] }) {
               stroke="var(--color-income)"
               strokeWidth={2}
               fill="url(#incomeGrad)"
+              type="monotone"
+            />
+            <Area
+              dataKey="allocations"
+              stroke="var(--color-allocations)"
+              strokeWidth={2}
+              fill="url(#allocGrad)"
               type="monotone"
             />
             <Area

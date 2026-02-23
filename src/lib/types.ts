@@ -27,6 +27,7 @@ export interface TrendData {
   label: string;
   income: number;
   expense: number;
+  allocations: number;
 }
 
 export interface MerchantData {

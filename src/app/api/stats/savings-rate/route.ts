@@ -37,7 +37,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .all();
 
     const formatted = result.map((r) => {
-      const savings = r.income - r.expenses - r.allocations;
+      const savings = r.income - r.expenses;
       const savingsRate = r.income > 0 ? (savings / r.income) * 100 : 0;
       return {
         label: `${MONTH_ABBREVS[r.month - 1]} ${r.year}`,

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { transactions, uploads } from "@/db/schema";
+import { transactions, uploads, categories } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { MONTH_ABBREVS } from "@/lib/constants";
+import { ALLOC_EXCLUDE_SQL } from "@/db/queries";
 import { parseSearchParams, monthsSchema } from "@/lib/validation";
 import { errorResponse } from "@/lib/api-utils";
 
@@ -23,10 +24,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         month: uploads.month,
         year: uploads.year,
         income: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'credit' THEN ${transactions.amount} ELSE 0 END), 0)`,
-        expense: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'debit' THEN ${transactions.amount} ELSE 0 END), 0)`,
+        expense: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'debit' AND (${categories.name} IS NULL OR ${categories.name} NOT IN (${ALLOC_EXCLUDE_SQL})) THEN ${transactions.amount} ELSE 0 END), 0)`,
+        allocations: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'debit' AND ${categories.name} IN (${ALLOC_EXCLUDE_SQL}) THEN ${transactions.amount} ELSE 0 END), 0)`,
       })
       .from(transactions)
       .innerJoin(uploads, eq(transactions.uploadId, uploads.id))
+      .leftJoin(categories, eq(transactions.categoryId, categories.id))
       .where(eq(uploads.status, "committed"))
       .groupBy(uploads.year, uploads.month)
       .orderBy(uploads.year, uploads.month)
@@ -39,7 +42,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       year: r.year,
       income: r.income,
       expense: r.expense,
-      net: r.income - r.expense,
+      allocations: r.allocations,
+      net: r.income - r.expense - r.allocations,
     }));
 
     return NextResponse.json(formatted);
