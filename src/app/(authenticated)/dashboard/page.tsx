@@ -93,7 +93,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      {summary && <SummaryCards data={summary} />}
+      {summary && <SummaryCards data={summary} categories={categories} month={month!} year={year!} />}
 
       {velocity && <SpendingVelocity data={velocity} />}
 
