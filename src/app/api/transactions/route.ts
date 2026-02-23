@@ -43,8 +43,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const total = db
-      .select({ count: sql<number>`COUNT(*)` })
+    const totals = db
+      .select({
+        count: sql<number>`COUNT(*)`,
+        totalIncome: sql<number>`SUM(CASE WHEN ${transactions.type} = 'credit' THEN ${transactions.amount} ELSE 0 END)`,
+        totalExpenses: sql<number>`SUM(CASE WHEN ${transactions.type} = 'debit' THEN ${transactions.amount} ELSE 0 END)`,
+      })
       .from(transactions)
       .innerJoin(uploads, eq(transactions.uploadId, uploads.id))
       .where(and(...conditions))
@@ -73,11 +77,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .offset((page - 1) * limit)
       .all();
 
+    const count = totals?.count ?? 0;
+
     return NextResponse.json({
       transactions: rows,
-      total: total?.count ?? 0,
+      total: count,
+      totalIncome: totals?.totalIncome ?? 0,
+      totalExpenses: totals?.totalExpenses ?? 0,
       page,
-      totalPages: Math.ceil((total?.count ?? 0) / limit),
+      totalPages: Math.ceil(count / limit),
     });
   } catch (error) {
     return errorResponse(error, "transactions");

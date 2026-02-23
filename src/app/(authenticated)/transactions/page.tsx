@@ -56,6 +56,8 @@ function TransactionsContent() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpenses, setTotalExpenses] = useState(0);
   const [sortBy, setSortBy] = useState("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [editingTxn, setEditingTxn] = useState<TransactionWithCategory | null>(null);
@@ -112,6 +114,8 @@ function TransactionsContent() {
       setTxns(data.transactions);
       setTotalPages(data.totalPages);
       setTotal(data.total);
+      setTotalIncome(data.totalIncome);
+      setTotalExpenses(data.totalExpenses);
     }
   }, [month, year, type, categoryFilter, search, page, sortBy, sortDir]);
 
@@ -148,7 +152,12 @@ function TransactionsContent() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Transactions</h1>
-        <span className="text-sm text-muted-foreground">{total} total</span>
+        <div className="flex items-center gap-4 text-sm">
+          <span className="text-muted-foreground">{total} transactions</span>
+          <span className="text-emerald-600 font-medium">{formatIDR(totalIncome)}</span>
+          <span className="text-red-500 font-medium">-{formatIDR(totalExpenses)}</span>
+          <span className="font-semibold">Net {formatIDR(totalIncome - totalExpenses)}</span>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -218,7 +227,6 @@ function TransactionsContent() {
           <TableHeader>
             <TableRow>
               <SortableHead column="date" current={sortBy} dir={sortDir} onSort={handleSort}>Date</SortableHead>
-              <TableHead>Description</TableHead>
               <SortableHead column="merchant" current={sortBy} dir={sortDir} onSort={handleSort}>Merchant</SortableHead>
               <SortableHead column="category" current={sortBy} dir={sortDir} onSort={handleSort}>Category</SortableHead>
               <SortableHead column="amount" current={sortBy} dir={sortDir} onSort={handleSort} className="text-right">Amount</SortableHead>
@@ -230,7 +238,7 @@ function TransactionsContent() {
           <TableBody>
             {txns.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
                   No transactions found
                 </TableCell>
               </TableRow>
@@ -239,9 +247,6 @@ function TransactionsContent() {
                 <TableRow key={txn.id}>
                   <TableCell className="text-sm whitespace-nowrap">
                     {formatDate(txn.date)}
-                  </TableCell>
-                  <TableCell className="max-w-xs truncate text-sm">
-                    {txn.description}
                   </TableCell>
                   <TableCell className="text-sm">
                     {txn.merchant || "—"}
