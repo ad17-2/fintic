@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { transactions, uploads, categories } from "@/db/schema";
-import { and, eq, like, or, sql, desc } from "drizzle-orm";
+import { and, eq, like, or, sql, desc, asc, type SQL } from "drizzle-orm";
 import { parseSearchParams, transactionFilterSchema } from "@/lib/validation";
 import { errorResponse } from "@/lib/api-utils";
+
+function getSortOrder(sortBy: string, sortDir: string): SQL[] {
+  const dir = sortDir === "asc" ? asc : desc;
+  const columnMap: Record<string, SQL[]> = {
+    date: [dir(transactions.date), desc(transactions.id)],
+    amount: [dir(transactions.amount), desc(transactions.date)],
+    merchant: [dir(transactions.merchant), desc(transactions.date)],
+    category: [dir(categories.name), desc(transactions.date)],
+  };
+  return columnMap[sortBy] ?? [desc(transactions.date), desc(transactions.id)];
+}
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const params = parseSearchParams(transactionFilterSchema, request.nextUrl.searchParams);
@@ -15,7 +26,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const { month, year, categoryId, type, search, page, limit } = params.data;
+    const { month, year, categoryId, type, search, page, limit, sortBy, sortDir } = params.data;
 
     const conditions = [eq(uploads.status, "committed")];
 
@@ -57,7 +68,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .innerJoin(uploads, eq(transactions.uploadId, uploads.id))
       .leftJoin(categories, eq(transactions.categoryId, categories.id))
       .where(and(...conditions))
-      .orderBy(desc(transactions.date), desc(transactions.id))
+      .orderBy(...getSortOrder(sortBy, sortDir))
       .limit(limit)
       .offset((page - 1) * limit)
       .all();

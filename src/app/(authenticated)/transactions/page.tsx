@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Pencil } from "lucide-react";
+import { Search, Pencil, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +56,8 @@ function TransactionsContent() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [editingTxn, setEditingTxn] = useState<TransactionWithCategory | null>(null);
 
   useEffect(() => {
@@ -101,6 +103,8 @@ function TransactionsContent() {
     if (type !== "all") params.set("type", type);
     if (categoryFilter !== "all") params.set("categoryId", categoryFilter);
     if (search) params.set("search", search);
+    params.set("sortBy", sortBy);
+    params.set("sortDir", sortDir);
 
     const res = await fetch(`/api/transactions?${params}`);
     if (res.ok) {
@@ -109,7 +113,7 @@ function TransactionsContent() {
       setTotalPages(data.totalPages);
       setTotal(data.total);
     }
-  }, [month, year, type, categoryFilter, search, page]);
+  }, [month, year, type, categoryFilter, search, page, sortBy, sortDir]);
 
   useEffect(() => {
     fetch("/api/categories").then((r) => r.json()).then(setCategories);
@@ -118,6 +122,16 @@ function TransactionsContent() {
   useEffect(() => {
     if (periodResolved) fetchTransactions();
   }, [periodResolved, fetchTransactions]);
+
+  function handleSort(column: string) {
+    if (sortBy === column) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortDir(column === "amount" ? "desc" : "asc");
+    }
+    setPage(1);
+  }
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -203,11 +217,11 @@ function TransactionsContent() {
         <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
+              <SortableHead column="date" current={sortBy} dir={sortDir} onSort={handleSort}>Date</SortableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Merchant</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
+              <SortableHead column="merchant" current={sortBy} dir={sortDir} onSort={handleSort}>Merchant</SortableHead>
+              <SortableHead column="category" current={sortBy} dir={sortDir} onSort={handleSort}>Category</SortableHead>
+              <SortableHead column="amount" current={sortBy} dir={sortDir} onSort={handleSort} className="text-right">Amount</SortableHead>
               <TableHead>Type</TableHead>
               <TableHead>Notes</TableHead>
               <TableHead className="w-10" />
@@ -456,5 +470,36 @@ function EditTransactionDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function SortableHead({
+  column,
+  current,
+  dir,
+  onSort,
+  className,
+  children,
+}: {
+  column: string;
+  current: string;
+  dir: "asc" | "desc";
+  onSort: (column: string) => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const active = current === column;
+  const Icon = active ? (dir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+  return (
+    <TableHead className={className}>
+      <button
+        type="button"
+        className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => onSort(column)}
+      >
+        {children}
+        <Icon className={`h-3.5 w-3.5 ${active ? "text-foreground" : "text-muted-foreground/50"}`} />
+      </button>
+    </TableHead>
   );
 }

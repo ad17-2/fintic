@@ -22,6 +22,8 @@ export const transactionFilterSchema = z.object({
   search: z.string().max(200).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(200).default(50),
+  sortBy: z.enum(["date", "amount", "merchant", "category"]).default("date"),
+  sortDir: z.enum(["asc", "desc"]).default("desc"),
 });
 
 export const loginSchema = z.object({
