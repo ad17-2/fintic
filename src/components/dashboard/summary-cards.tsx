@@ -31,7 +31,7 @@ export function SummaryCards({ data }: { data: SummaryData }) {
       icon: TrendingDown,
       color: "text-rose-600 dark:text-rose-400",
       accent: "border-t-rose-500",
-      subtitle: null,
+      subtitle: "Excludes Investing, Tithe, Family",
     },
     {
       label: "Allocations",
