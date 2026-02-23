@@ -73,10 +73,11 @@ export default function UploadPage() {
     e.preventDefault();
     setDragging(false);
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile?.name.endsWith(".csv") || droppedFile?.name.endsWith(".CSV")) {
+    const name = droppedFile?.name.toLowerCase() ?? "";
+    if (name.endsWith(".csv") || name.endsWith(".pdf")) {
       setFile(droppedFile);
     } else {
-      toast.error("Please drop a CSV file");
+      toast.error("Please drop a CSV or PDF file");
     }
   }
 
@@ -89,7 +90,7 @@ export default function UploadPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Upload BCA CSV</CardTitle>
+          <CardTitle>Upload BCA Statement</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Select value={year} onValueChange={setYear}>
@@ -134,7 +135,7 @@ export default function UploadPage() {
             ) : (
               <>
                 <p className="text-sm text-muted-foreground">
-                  Drag & drop CSV file here, or
+                  Drag & drop CSV or PDF file here, or
                 </p>
                 <label className="mt-2 cursor-pointer">
                   <span className="text-sm font-medium text-primary underline">
@@ -142,7 +143,7 @@ export default function UploadPage() {
                   </span>
                   <input
                     type="file"
-                    accept=".csv,.CSV"
+                    accept=".csv,.pdf"
                     className="hidden"
                     onChange={(e) => {
                       const f = e.target.files?.[0];
@@ -159,7 +160,11 @@ export default function UploadPage() {
             disabled={!file || uploading}
             className="w-full"
           >
-            {uploading ? "Parsing..." : "Upload & Parse"}
+            {uploading
+              ? file?.name.toLowerCase().endsWith(".pdf")
+                ? "Extracting with AI..."
+                : "Parsing..."
+              : "Upload & Parse"}
           </Button>
         </CardContent>
       </Card>
@@ -199,23 +204,21 @@ export default function UploadPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={u.status} />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push(`/review/${u.id}`)}
+                    >
+                      {u.status === "pending" ? "Review" : "View"}
+                    </Button>
                     {u.status === "pending" && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => router.push(`/review/${u.id}`)}
-                        >
-                          Review
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(u.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(u.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
                     )}
                   </div>
                 </div>

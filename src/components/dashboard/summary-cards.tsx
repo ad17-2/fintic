@@ -71,7 +71,7 @@ export function SummaryCards({ data }: { data: SummaryData }) {
               <p className="text-sm text-muted-foreground">{card.label}</p>
               <card.icon className={`h-4 w-4 ${card.color}`} />
             </div>
-            <p className={`mt-2 text-2xl font-bold ${card.color}`}>
+            <p className={`mt-2 text-lg font-bold xl:text-2xl ${card.color} truncate`}>
               {card.value}
             </p>
             {card.subtitle && (

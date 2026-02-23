@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { PieChart, Pie, Cell } from "recharts";
 import {
   ChartContainer,
@@ -12,7 +13,15 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { CategoryData } from "@/lib/types";
 
-export function CategoryBreakdown({ data }: { data: CategoryData[] }) {
+interface CategoryBreakdownProps {
+  data: CategoryData[];
+  month: string;
+  year: string;
+}
+
+export function CategoryBreakdown({ data, month, year }: CategoryBreakdownProps) {
+  const router = useRouter();
+
   if (data.length === 0) {
     return (
       <Card>
@@ -39,9 +48,16 @@ export function CategoryBreakdown({ data }: { data: CategoryData[] }) {
 
   const chartData = data.map((d) => ({
     category: d.categoryName,
+    categoryId: d.categoryId,
     amount: d.total,
     fill: d.color,
   }));
+
+  function handleClick(entry: { categoryId?: number | null }) {
+    if (!entry.categoryId) return;
+    const params = new URLSearchParams({ month, year, categoryId: String(entry.categoryId), type: "debit" });
+    router.push(`/transactions?${params}`);
+  }
 
   return (
     <Card>
@@ -60,6 +76,8 @@ export function CategoryBreakdown({ data }: { data: CategoryData[] }) {
               outerRadius={100}
               strokeWidth={2}
               stroke="var(--background)"
+              style={{ cursor: "pointer" }}
+              onClick={(_: unknown, index: number) => handleClick(chartData[index])}
             >
               {chartData.map((entry) => (
                 <Cell key={entry.category} fill={entry.fill} />

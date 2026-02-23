@@ -16,6 +16,7 @@ export interface DailyData {
 }
 
 export interface CategoryData {
+  categoryId: number | null;
   categoryName: string;
   color: string;
   total: number;
@@ -35,6 +36,7 @@ export interface MerchantData {
 }
 
 export interface ComparisonData {
+  categoryId: number | null;
   category: string;
   color: string;
   current: number;
@@ -70,6 +72,40 @@ export interface DowItem {
 export interface SavingsRateItem {
   label: string;
   savingsRate: number;
+}
+
+export interface CategoryTrendMonth {
+  month: number;
+  year: number;
+  label: string;
+  total: number;
+}
+
+export interface CategoryTrendItem {
+  categoryName: string;
+  color: string;
+  months: CategoryTrendMonth[];
+}
+
+export interface AnomalyItem {
+  categoryName: string;
+  color: string;
+  currentTotal: number;
+  rollingAverage: number;
+  percentAboveAverage: number;
+}
+
+export interface RecurringItem {
+  merchant: string;
+  averageAmount: number;
+  monthsAppeared: number;
+  currentMonthAmount: number;
+}
+
+export interface RecurringData {
+  recurring: number;
+  oneTime: number;
+  recurringItems: RecurringItem[];
 }
 
 export interface Category {

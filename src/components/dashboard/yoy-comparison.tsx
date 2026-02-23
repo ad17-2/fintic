@@ -20,14 +20,18 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function YoYComparison({ data }: { data: YoYItem[] }) {
-  if (data.length === 0) {
+  const noPreviousData = data.length === 0 || data.every((d) => d.previousYear === 0);
+
+  if (noPreviousData) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>Year-over-Year</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No data yet</p>
+          <p className="text-sm text-muted-foreground">
+            {data.length === 0 ? "No data yet" : "Not enough data — need data from the same month last year"}
+          </p>
         </CardContent>
       </Card>
     );

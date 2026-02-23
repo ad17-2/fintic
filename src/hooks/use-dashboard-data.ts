@@ -11,6 +11,9 @@ import type {
   YoYItem,
   DowItem,
   SavingsRateItem,
+  CategoryTrendItem,
+  AnomalyItem,
+  RecurringData,
 } from "@/lib/types";
 
 interface DashboardData {
@@ -28,6 +31,9 @@ interface DashboardData {
   yoyComparison: YoYItem[];
   dayOfWeek: DowItem[];
   savingsRate: SavingsRateItem[];
+  categoryTrends: CategoryTrendItem[];
+  anomalies: AnomalyItem[];
+  recurring: RecurringData | null;
 }
 
 export function useDashboardData(): DashboardData {
@@ -43,6 +49,9 @@ export function useDashboardData(): DashboardData {
   const [yoyComparison, setYoyComparison] = useState<YoYItem[]>([]);
   const [dayOfWeek, setDayOfWeek] = useState<DowItem[]>([]);
   const [savingsRate, setSavingsRate] = useState<SavingsRateItem[]>([]);
+  const [categoryTrends, setCategoryTrends] = useState<CategoryTrendItem[]>([]);
+  const [anomalies, setAnomalies] = useState<AnomalyItem[]>([]);
+  const [recurring, setRecurring] = useState<RecurringData | null>(null);
 
   useEffect(() => {
     async function resolveDefaultPeriod() {
@@ -70,6 +79,7 @@ export function useDashboardData(): DashboardData {
     const [
       summaryRes, catRes, trendRes, merchantsRes, comparisonRes,
       velocityRes, yoyRes, dowRes, savingsRes,
+      categoryTrendsRes, anomaliesRes, recurringRes,
     ] = await Promise.all([
       fetch(`/api/stats/summary?month=${month}&year=${year}`),
       fetch(`/api/stats/by-category?month=${month}&year=${year}&type=debit`),
@@ -80,6 +90,9 @@ export function useDashboardData(): DashboardData {
       fetch(`/api/stats/yoy-comparison?month=${month}&year=${year}`),
       fetch(`/api/stats/spending-by-dow?month=${month}&year=${year}`),
       fetch("/api/stats/savings-rate?months=12"),
+      fetch(`/api/stats/category-trends?month=${month}&year=${year}`),
+      fetch(`/api/stats/anomalies?month=${month}&year=${year}`),
+      fetch(`/api/stats/recurring?month=${month}&year=${year}`),
     ]);
 
     if (summaryRes.ok) setSummary(await summaryRes.json());
@@ -91,6 +104,9 @@ export function useDashboardData(): DashboardData {
     if (yoyRes.ok) setYoyComparison(await yoyRes.json());
     if (dowRes.ok) setDayOfWeek(await dowRes.json());
     if (savingsRes.ok) setSavingsRate(await savingsRes.json());
+    if (categoryTrendsRes.ok) setCategoryTrends(await categoryTrendsRes.json());
+    if (anomaliesRes.ok) setAnomalies(await anomaliesRes.json());
+    if (recurringRes.ok) setRecurring(await recurringRes.json());
   }, [month, year]);
 
   useEffect(() => {
@@ -102,5 +118,6 @@ export function useDashboardData(): DashboardData {
     setMonth, setYear,
     summary, categories, trends, topMerchants,
     categoryComparison, velocity, yoyComparison, dayOfWeek, savingsRate,
+    categoryTrends, anomalies, recurring,
   };
 }

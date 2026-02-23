@@ -24,11 +24,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const categoryMap = new Map<
       string,
-      { category: string; color: string; current: number; previous: number }
+      { categoryId: number | null; category: string; color: string; current: number; previous: number }
     >();
 
     for (const row of current) {
       categoryMap.set(row.categoryName, {
+        categoryId: row.categoryId,
         category: row.categoryName,
         color: row.color,
         current: row.total,
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         existing.previous = row.total;
       } else {
         categoryMap.set(row.categoryName, {
+          categoryId: row.categoryId,
           category: row.categoryName,
           color: row.color,
           current: 0,

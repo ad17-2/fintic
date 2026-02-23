@@ -25,7 +25,7 @@ export const transactionFilterSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  password: z.string().min(1).max(500),
+  password: z.string().min(1, "Password is required").max(500),
 });
 
 export const transactionPatchSchema = z.object({

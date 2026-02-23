@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -34,19 +36,61 @@ import { MONTHS } from "@/lib/constants";
 import type { TransactionWithCategory, Category } from "@/lib/types";
 
 export default function TransactionsPage() {
+  return (
+    <Suspense>
+      <TransactionsContent />
+    </Suspense>
+  );
+}
+
+function TransactionsContent() {
+  const searchParams = useSearchParams();
   const [txns, setTxns] = useState<TransactionWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [month, setMonth] = useState(String(new Date().getMonth() + 1));
-  const [year, setYear] = useState(String(new Date().getFullYear()));
-  const [type, setType] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [search, setSearch] = useState("");
+  const [month, setMonth] = useState<string | null>(null);
+  const [year, setYear] = useState<string | null>(null);
+  const [periodResolved, setPeriodResolved] = useState(false);
+  const [type, setType] = useState(searchParams.get("type") ?? "all");
+  const [categoryFilter, setCategoryFilter] = useState(searchParams.get("categoryId") ?? "all");
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [editingTxn, setEditingTxn] = useState<TransactionWithCategory | null>(null);
 
+  useEffect(() => {
+    const urlMonth = searchParams.get("month");
+    const urlYear = searchParams.get("year");
+
+    if (urlMonth && urlYear) {
+      setMonth(urlMonth);
+      setYear(urlYear);
+      setPeriodResolved(true);
+      return;
+    }
+
+    async function resolveDefaultPeriod() {
+      const res = await fetch("/api/stats/trends?months=120");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) {
+          const latest = data[data.length - 1];
+          setMonth(String(latest.month));
+          setYear(String(latest.year));
+          setPeriodResolved(true);
+          return;
+        }
+      }
+      setMonth(String(new Date().getMonth() + 1));
+      setYear(String(new Date().getFullYear()));
+      setPeriodResolved(true);
+    }
+    resolveDefaultPeriod();
+  }, [searchParams]);
+
   const fetchTransactions = useCallback(async () => {
+    if (!month || !year) return;
+
     const params = new URLSearchParams({
       month,
       year,
@@ -72,11 +116,19 @@ export default function TransactionsPage() {
   }, []);
 
   useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+    if (periodResolved) fetchTransactions();
+  }, [periodResolved, fetchTransactions]);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+
+  if (!periodResolved) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold">Transactions</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -86,7 +138,7 @@ export default function TransactionsPage() {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Select value={month} onValueChange={(v) => { setMonth(v); setPage(1); }}>
+        <Select value={month!} onValueChange={(v) => { setMonth(v); setPage(1); }}>
           <SelectTrigger className="w-32">
             <SelectValue />
           </SelectTrigger>
@@ -97,7 +149,7 @@ export default function TransactionsPage() {
           </SelectContent>
         </Select>
 
-        <Select value={year} onValueChange={(v) => { setYear(v); setPage(1); }}>
+        <Select value={year!} onValueChange={(v) => { setYear(v); setPage(1); }}>
           <SelectTrigger className="w-24">
             <SelectValue />
           </SelectTrigger>
@@ -147,8 +199,8 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border">
-        <Table>
+      <div className="overflow-x-auto rounded-lg border">
+        <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
@@ -325,6 +377,7 @@ function EditTransactionDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Transaction</DialogTitle>
+          <DialogDescription>Update the details for this transaction.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2">
           <div className="grid grid-cols-2 gap-4">

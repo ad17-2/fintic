@@ -17,6 +17,10 @@ const SpendingVelocity = dynamic(
   () => import("@/components/dashboard/spending-velocity").then((m) => ({ default: m.SpendingVelocity })),
   { loading: () => <VelocitySkeleton />, ssr: false },
 );
+const AnomalyCallouts = dynamic(
+  () => import("@/components/dashboard/anomaly-callouts").then((m) => ({ default: m.AnomalyCallouts })),
+  { ssr: false },
+);
 const IncomeExpenseTrend = dynamic(
   () => import("@/components/dashboard/income-expense-trend").then((m) => ({ default: m.IncomeExpenseTrend })),
   { loading: () => <ChartSkeleton />, ssr: false },
@@ -37,6 +41,14 @@ const CategoryComparison = dynamic(
   () => import("@/components/dashboard/category-comparison").then((m) => ({ default: m.CategoryComparison })),
   { loading: () => <ChartSkeleton />, ssr: false },
 );
+const RecurringSpending = dynamic(
+  () => import("@/components/dashboard/recurring-spending").then((m) => ({ default: m.RecurringSpending })),
+  { loading: () => <ChartSkeleton />, ssr: false },
+);
+const CategoryTrends = dynamic(
+  () => import("@/components/dashboard/category-trends").then((m) => ({ default: m.CategoryTrends })),
+  { loading: () => <ChartSkeleton />, ssr: false },
+);
 const YoYComparison = dynamic(
   () => import("@/components/dashboard/yoy-comparison").then((m) => ({ default: m.YoYComparison })),
   { loading: () => <ChartSkeleton />, ssr: false },
@@ -55,7 +67,7 @@ export default function DashboardPage() {
     month, year, periodResolved, setMonth, setYear,
     summary, velocity, trends, categories,
     topMerchants, categoryComparison, yoyComparison,
-    dayOfWeek, savingsRate,
+    dayOfWeek, savingsRate, categoryTrends, anomalies, recurring,
   } = useDashboardData();
 
   if (!periodResolved) {
@@ -85,14 +97,21 @@ export default function DashboardPage() {
 
       {velocity && <SpendingVelocity data={velocity} />}
 
+      <AnomalyCallouts data={anomalies} />
+
       <div className="grid gap-6 lg:grid-cols-2">
         <IncomeExpenseTrend data={trends} />
-        <CategoryBreakdown data={categories} />
+        <CategoryBreakdown data={categories} month={month!} year={year!} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <TopMerchants data={topMerchants} />
-        <CategoryComparison data={categoryComparison} />
+        <TopMerchants data={topMerchants} month={month!} year={year!} />
+        <CategoryComparison data={categoryComparison} month={month!} year={year!} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {recurring && <RecurringSpending data={recurring} />}
+        <CategoryTrends data={categoryTrends} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

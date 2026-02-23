@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   ChartContainer,
@@ -18,15 +19,26 @@ const chartConfig = {
   previous: { label: "Last Month", theme: { light: "oklch(0.700 0.020 265)", dark: "oklch(0.550 0.015 265)" } },
 } satisfies ChartConfig;
 
-export function CategoryComparison({ data }: { data: ComparisonData[] }) {
-  if (data.length === 0) {
+interface CategoryComparisonProps {
+  data: ComparisonData[];
+  month: string;
+  year: string;
+}
+
+export function CategoryComparison({ data, month, year }: CategoryComparisonProps) {
+  const router = useRouter();
+  const noPreviousData = data.length === 0 || data.every((d) => d.previous === 0);
+
+  if (noPreviousData) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>Category Comparison</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No data yet</p>
+          <p className="text-sm text-muted-foreground">
+            {data.length === 0 ? "No data yet" : "Not enough data — need at least 2 months"}
+          </p>
         </CardContent>
       </Card>
     );
@@ -36,6 +48,12 @@ export function CategoryComparison({ data }: { data: ComparisonData[] }) {
     ...d,
     label: truncate(d.category, 14),
   }));
+
+  function handleClick(entry: { categoryId?: number | null }) {
+    if (!entry.categoryId) return;
+    const params = new URLSearchParams({ month, year, categoryId: String(entry.categoryId), type: "debit" });
+    router.push(`/transactions?${params}`);
+  }
 
   return (
     <Card>
@@ -68,6 +86,8 @@ export function CategoryComparison({ data }: { data: ComparisonData[] }) {
               dataKey="current"
               fill="var(--color-current)"
               radius={[4, 4, 0, 0]}
+              style={{ cursor: "pointer" }}
+              onClick={(_: unknown, index: number) => handleClick(chartData[index])}
             />
             <Bar
               dataKey="previous"

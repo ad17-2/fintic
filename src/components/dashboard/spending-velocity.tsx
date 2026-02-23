@@ -34,7 +34,12 @@ export function SpendingVelocity({ data }: { data: VelocityData }) {
     );
   }
 
-  const clampedPercent = Math.min(data.pacePercent, 100);
+  const monthComplete = data.daysRemaining === 0;
+  const spentPercent = data.budget > 0 ? Math.min((data.totalSpent / data.budget) * 100, 100) : 0;
+  const clampedPercent = monthComplete ? spentPercent : Math.min(data.pacePercent, 100);
+  const actualPacePercent = monthComplete
+    ? (data.budget > 0 ? Math.round((data.totalSpent / data.budget) * 1000) / 10 : 0)
+    : data.pacePercent;
 
   return (
     <Card>
@@ -45,13 +50,23 @@ export function SpendingVelocity({ data }: { data: VelocityData }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          At this pace, you&apos;ll spend{" "}
-          <span className={`font-bold ${getTextColor(data.pacePercent)}`}>
-            {formatIDR(data.projectedTotal)}
-          </span>{" "}
-          by month-end
-        </p>
+        {monthComplete ? (
+          <p className="text-sm text-muted-foreground">
+            Month complete — you spent{" "}
+            <span className={`font-bold ${getTextColor(actualPacePercent)}`}>
+              {formatIDR(data.totalSpent)}
+            </span>{" "}
+            of {formatIDR(data.budget)} income
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            At this pace, you&apos;ll spend{" "}
+            <span className={`font-bold ${getTextColor(data.pacePercent)}`}>
+              {formatIDR(data.projectedTotal)}
+            </span>{" "}
+            by month-end
+          </p>
+        )}
 
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs text-muted-foreground">
@@ -60,12 +75,12 @@ export function SpendingVelocity({ data }: { data: VelocityData }) {
           </div>
           <div className="h-3 w-full rounded-full bg-muted">
             <div
-              className={`h-full rounded-full transition-all ${getBarColor(data.pacePercent)}`}
+              className={`h-full rounded-full transition-all ${getBarColor(actualPacePercent)}`}
               style={{ width: `${clampedPercent}%` }}
             />
           </div>
-          <p className={`text-xs font-medium ${getTextColor(data.pacePercent)}`}>
-            {data.pacePercent}% of income (projected)
+          <p className={`text-xs font-medium ${getTextColor(actualPacePercent)}`}>
+            {actualPacePercent}% of income{monthComplete ? "" : " (projected)"}
           </p>
         </div>
 
@@ -75,11 +90,11 @@ export function SpendingVelocity({ data }: { data: VelocityData }) {
             <p className="text-sm font-semibold">{formatIDR(data.avgDailySpend)}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Days Left</p>
-            <p className="text-sm font-semibold">{data.daysRemaining}</p>
+            <p className="text-xs text-muted-foreground">{monthComplete ? "Days" : "Days Left"}</p>
+            <p className="text-sm font-semibold">{monthComplete ? data.daysInMonth : data.daysRemaining}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Budget Remaining</p>
+            <p className="text-xs text-muted-foreground">{monthComplete ? "Net" : "Budget Remaining"}</p>
             <p className={`text-sm font-semibold ${data.budgetRemaining >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
               {formatIDR(Math.abs(data.budgetRemaining))}
               {data.budgetRemaining < 0 && " over"}

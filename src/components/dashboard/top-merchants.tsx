@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   ChartContainer,
@@ -15,7 +16,15 @@ const chartConfig = {
   total: { label: "Amount", theme: { light: "oklch(0.600 0.118 184)", dark: "oklch(0.650 0.130 184)" } },
 } satisfies ChartConfig;
 
-export function TopMerchants({ data }: { data: MerchantData[] }) {
+interface TopMerchantsProps {
+  data: MerchantData[];
+  month: string;
+  year: string;
+}
+
+export function TopMerchants({ data, month, year }: TopMerchantsProps) {
+  const router = useRouter();
+
   if (data.length === 0) {
     return (
       <Card>
@@ -34,6 +43,12 @@ export function TopMerchants({ data }: { data: MerchantData[] }) {
     label: truncate(d.merchant, 18),
     total: d.total,
   }));
+
+  function handleClick(entry: { merchant?: string }) {
+    if (!entry.merchant) return;
+    const params = new URLSearchParams({ month, year, search: entry.merchant, type: "debit" });
+    router.push(`/transactions?${params}`);
+  }
 
   return (
     <Card>
@@ -69,6 +84,8 @@ export function TopMerchants({ data }: { data: MerchantData[] }) {
               dataKey="total"
               fill="var(--color-total)"
               radius={[0, 4, 4, 0]}
+              style={{ cursor: "pointer" }}
+              onClick={(_: unknown, index: number) => handleClick(chartData[index])}
             />
           </BarChart>
         </ChartContainer>
